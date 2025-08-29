@@ -45,3 +45,11 @@ def update_account(
     session.commit()
     session.refresh(db_account)
     return db_account
+
+
+def delete_account(*, session: Session, db_account: Account) -> None:
+    db_account.sqlmodel_update({"is_active": False})
+    session.add(db_account)
+    session.commit()
+    session.refresh(db_account)
+    return db_account
