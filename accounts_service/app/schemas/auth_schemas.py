@@ -16,3 +16,7 @@ class TokenPayload(BaseModel):
 class Credentials(BaseModel):
     email: EmailStr
     password: str
+
+
+class Message(BaseModel):
+    message: str

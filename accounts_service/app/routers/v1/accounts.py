@@ -6,6 +6,7 @@ from app.services import account_service
 from app.dependencies.dependencies import (
     SessionDep,
     admin_required,
+    CurrentAccount
 )
 from app.models.account_models import (
     Account,
@@ -13,6 +14,7 @@ from app.models.account_models import (
     AccountPublic,
     AccountUpdate,
 )
+from app.schemas.auth_schemas import Message
 
 router = APIRouter(prefix="/accounts", tags=["accounts"])
 
@@ -81,3 +83,27 @@ def update_account(
         account_in=account_in
     )
     return db_account
+
+
+@router.delete(
+    "/{account_id}",
+    dependencies=[Depends(admin_required)],
+    response_model=Message
+)
+def delete_account(
+    session: SessionDep, current_account: CurrentAccount, account_id: uuid.UUID
+) -> Message:
+    """
+    Delete an account.
+    """
+    account = session.get(Account, account_id)
+    if not account:
+        raise HTTPException(status_code=404, detail="Account not found")
+    if account == current_account:
+        raise HTTPException(
+            status_code=403,
+            detail="Admin accounts are not allowed to delete themselves"
+        )
+    account_service.delete_account(account)
+    session.commit()
+    return Message(message="Account deleted successfully")

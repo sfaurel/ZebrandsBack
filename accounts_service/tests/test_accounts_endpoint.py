@@ -1,9 +1,9 @@
 from fastapi.testclient import TestClient
-from sqlmodel import Session
+from sqlmodel import Session, select
 import uuid
 
 from app.services.account_service import create_account
-from app.models.account_models import AccountCreate
+from app.models.account_models import Account, AccountCreate
 
 
 def test_create_account_existing_email(
@@ -53,12 +53,12 @@ def test_create_account_by_normal_account(
     email = "from_normal_account@example.com"
     password = "password"
     data = {"email": email, "password": password}
-    r = client.post(
+    response = client.post(
         "/api/v1/accounts",
         headers=normal_account_token_headers,
         json=data,
     )
-    assert r.status_code == 403
+    assert response.status_code == 403
 
 # TODO: check why this test make someothers tests fail
 # def test_update_account(
@@ -94,7 +94,7 @@ def test_create_account_by_normal_account(
 #     admin_account_token_headers: dict[str, str],
 #     db: Session
 # ) -> None:
-#     email = "by_normal_user@example.com"
+#     email = "by_normal_account@example.com"
 #     password = "password"
 #     account_in = AccountCreate(email=email, password=password)
 #     account = create_account(session=db, account_create=account_in)
@@ -145,3 +145,52 @@ def test_update_account_email_exists(
     )
     assert response.status_code == 409
     assert response.json()["detail"] == "Account with this email already exists"
+
+
+def test_delete_account_with_privileged_account(
+    client: TestClient,
+    admin_account_token_headers: dict[str, str],
+    db: Session
+) -> None:
+    email = "to_delete@example.com"
+    password = "password"
+    account_in = AccountCreate(email=email, password=password)
+    account = create_account(session=db, account_create=account_in)
+    account_id = account.id
+    response = client.delete(
+        f"/api/v1/accounts/{account_id}",
+        headers=admin_account_token_headers,
+    )
+    print("rrrrrr", response.json())
+    assert response.status_code == 200
+    deleted_account = response.json()
+    assert deleted_account["message"] == "Account deleted successfully"
+    result = db.exec(select(Account).where(Account.id == account_id)).first()
+    assert result is None
+
+
+def test_delete_account_not_found(
+    client: TestClient, admin_account_token_headers: dict[str, str]
+) -> None:
+    response = client.delete(
+        f"/api/v1/accounts/{uuid.uuid4()}",
+        headers=admin_account_token_headers,
+    )
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Account not found"
+
+
+def test_delete_account_without_privileges(
+    client: TestClient, normal_account_token_headers: dict[str, str], db: Session
+) -> None:
+    email = "delete_from_normal@example.com"
+    password = "password"
+    account_in = AccountCreate(email=email, password=password)
+    account = create_account(session=db, account_create=account_in)
+
+    response = client.delete(
+        f"/api/v1/accounts/{account.id}",
+        headers=normal_account_token_headers,
+    )
+    assert response.status_code == 403
+    assert response.json()["detail"] == "The account doesn't have enough privileges"
