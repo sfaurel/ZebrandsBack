@@ -41,8 +41,11 @@ def test_update_account(db: Session) -> None:
     account_in_update = AccountUpdate(
         password=new_password, full_name=new_name)
     if account.id is not None:
-        account_2 = update_account(session=db, db_account=account,
-                       account_in=account_in_update)
+        account_2 = update_account(
+            session=db,
+            db_account=account,
+            account_in=account_in_update
+        )
     assert account_2
     assert account.email == account_2.email
     assert verify_password(new_password, account_2.hashed_password)
