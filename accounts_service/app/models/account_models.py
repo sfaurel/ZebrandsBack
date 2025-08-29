@@ -31,3 +31,4 @@ class AccountPublic(AccountBase):
 class Account(AccountBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str = Field(nullable=False)
+
