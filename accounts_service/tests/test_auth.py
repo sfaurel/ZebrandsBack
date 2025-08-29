@@ -13,9 +13,9 @@ def test_login_fail(client: TestClient) -> None:
     assert response.json() == {"detail": "Invalid credentials"}
 
 
-def test_login_success(client: TestClient, test_user) -> None:
+def test_login_success(client: TestClient, test_account) -> None:
     credentials = {
-        "email": test_user.email,
+        "email": test_account.email,
         "password": TEST_ACCOUNT.password
     }
 

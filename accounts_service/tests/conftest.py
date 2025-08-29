@@ -30,7 +30,7 @@ TEST_ACCOUNT = AccountCreate(
 
 
 @pytest.fixture()
-def test_user(create_test_db) -> Account:
+def test_account(create_test_db) -> Account:
     with Session(engine_test) as session:
         account = create_account(session=session, account_create=TEST_ACCOUNT)
         session.commit()

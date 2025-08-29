@@ -19,6 +19,11 @@ class AccountCreate(AccountBase):
     password: str = Field(min_length=8, max_length=40)
 
 
+class AccountUpdate(AccountBase):
+    email: EmailStr | None = Field(default=None, max_length=255)
+    password: str | None = Field(default=None, min_length=8, max_length=40)
+
+
 class Account(AccountBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str = Field(nullable=False)
