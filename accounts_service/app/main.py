@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from app.routers import v1
+from app.routers.v1 import auth
 
 
 app = FastAPI(title="Accounts API")
 
-app.include_router(v1.router, prefix="/api/v1")
+app.include_router(auth.router, prefix="/api/v1")
