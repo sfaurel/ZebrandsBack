@@ -3,7 +3,10 @@ from typing import Annotated
 from fastapi import Depends, HTTPException, status
 from sqlmodel import Session
 
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import (
+    HTTPBearer,
+    HTTPAuthorizationCredentials
+)
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
 import jwt
@@ -22,15 +25,15 @@ def get_db() -> Generator[Session, None, None]:
 
 SessionDep = Annotated[Session, Depends(get_db)]
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+bearer_scheme = HTTPBearer()
 
 
-TokenDep = Annotated[str, Depends(oauth2_scheme)]
+TokenDep = Annotated[HTTPAuthorizationCredentials, Depends(bearer_scheme)]
 
 
 def get_current_token_data(token: TokenDep) -> dict:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token.credentials, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
     except (InvalidTokenError, ValidationError):
         raise HTTPException(

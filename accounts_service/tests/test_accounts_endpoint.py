@@ -161,7 +161,6 @@ def test_delete_account_with_privileged_account(
         f"/api/v1/accounts/{account_id}",
         headers=admin_account_token_headers,
     )
-    print("rrrrrr", response.json())
     assert response.status_code == 200
     deleted_account = response.json()
     assert deleted_account["message"] == "Account deleted successfully"

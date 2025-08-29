@@ -39,7 +39,7 @@ def init_db(session: Session) -> None:
         account_in = AccountCreate(
             email=ROOT_EMAIL,
             password=ROOT_PASSWORD,
-            role="Admin",
+            role="admin",
         )
         account = create_account(
             session=session, account_create=account_in)
