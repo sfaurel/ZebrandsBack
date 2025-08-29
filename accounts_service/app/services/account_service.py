@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 
 
 from app.models.account_models import Account, AccountCreate
-from app.services.auth_service import get_password_hash
+from app.utils.security import get_password_hash
 
 
 def create_account(
