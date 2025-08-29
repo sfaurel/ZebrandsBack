@@ -104,6 +104,6 @@ def delete_account(
             status_code=403,
             detail="Admin accounts are not allowed to delete themselves"
         )
-    account_service.delete_account(account)
+    account_service.delete_account(session=session, db_account=account)
     session.commit()
     return Message(message="Account deleted successfully")

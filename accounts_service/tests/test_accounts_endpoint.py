@@ -152,7 +152,7 @@ def test_delete_account_with_privileged_account(
     admin_account_token_headers: dict[str, str],
     db: Session
 ) -> None:
-    email = "to_delete@example.com"
+    email = "to_delete_@example.com"
     password = "password"
     account_in = AccountCreate(email=email, password=password)
     account = create_account(session=db, account_create=account_in)
@@ -165,7 +165,7 @@ def test_delete_account_with_privileged_account(
     deleted_account = response.json()
     assert deleted_account["message"] == "Account deleted successfully"
     result = db.exec(select(Account).where(Account.id == account_id)).first()
-    assert result is None
+    assert result.is_active is False
 
 
 def test_delete_account_not_found(
@@ -180,7 +180,9 @@ def test_delete_account_not_found(
 
 
 def test_delete_account_without_privileges(
-    client: TestClient, normal_account_token_headers: dict[str, str], db: Session
+    client: TestClient,
+    normal_account_token_headers: dict[str, str],
+    db: Session
 ) -> None:
     email = "delete_from_normal@example.com"
     password = "password"
