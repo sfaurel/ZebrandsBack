@@ -39,7 +39,9 @@ def login(
 
     return Token(
         access_token=create_access_token(
-            user.email, expires_delta=access_token_expires
+            subject=user.email,
+            extra_claims={"role": user.role},
+            expires_delta=access_token_expires
         ),
         token_type="bearer",
         expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60

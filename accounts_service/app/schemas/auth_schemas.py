@@ -7,6 +7,12 @@ class Token(BaseModel):
     expires_in: int
 
 
+class TokenPayload(BaseModel):
+    sub: str | None = None
+    role: str = "anonymous"
+    exp: int | None = None
+
+
 class Credentials(BaseModel):
     email: EmailStr
     password: str

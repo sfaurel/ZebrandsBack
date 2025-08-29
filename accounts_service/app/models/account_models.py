@@ -24,6 +24,10 @@ class AccountUpdate(AccountBase):
     password: str | None = Field(default=None, min_length=8, max_length=40)
 
 
+class AccountPublic(AccountBase):
+    id: uuid.UUID
+
+
 class Account(AccountBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str = Field(nullable=False)

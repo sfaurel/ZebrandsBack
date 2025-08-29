@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 from conftest import TEST_ACCOUNT
 
+
 def test_login_fail(client: TestClient) -> None:
     wrong_credentials = {
         "email": "wrong_email@example.com",
