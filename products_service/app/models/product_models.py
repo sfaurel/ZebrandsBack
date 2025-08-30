@@ -10,5 +10,9 @@ class ProductBase(SQLModel):
     brand: str = Field(min_length=1, max_length=100)
 
 
+class ProductCreate(ProductBase):
+    pass
+
+
 class Product(ProductBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
