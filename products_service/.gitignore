@@ -1,0 +1,16 @@
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+#python venv
+venv/*
+#env files
+.env
+#python cache
+__pycache__
