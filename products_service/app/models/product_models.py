@@ -8,6 +8,7 @@ class ProductBase(SQLModel):
     sku: str = Field(min_length=1, max_length=100, index=True, unique=True)
     price: float = Field(gt=0)
     brand: str = Field(min_length=1, max_length=100)
+    is_discontinued: bool = Field(default=False)
 
 
 class ProductCreate(ProductBase):

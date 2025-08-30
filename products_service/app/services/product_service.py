@@ -29,3 +29,10 @@ def update_product(
     session.refresh(db_product)
     return db_product
 
+
+def delete_product(*, session: Session, db_product: Product) -> None:
+    db_product.sqlmodel_update({"is_discontinued": True})
+    session.add(db_product)
+    session.commit()
+    session.refresh(db_product)
+    return db_product

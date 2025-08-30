@@ -3,7 +3,8 @@ import pytest
 
 from app.services.product_service import (
     create_product,
-    update_product
+    update_product,
+    delete_product
 )
 from app.models.product_models import Product, ProductCreate
 
@@ -262,3 +263,56 @@ def test_update_product_missing_sku(db: Session) -> None:
     assert errors[0]['loc'] == ('sku',)
     assert errors[0]['type'] == 'string_too_short'
 
+
+def test_delete_product(db: Session) -> None:
+    name = "Product to Delete"
+    description = "This product will be deleted"
+    price = 99.99
+    brand = "BrandJ"
+    sku = "SKU66666"
+
+    product_in = ProductCreate(
+        name=name,
+        description=description,
+        price=price,
+        brand=brand,
+        sku=sku
+    )
+
+    product = create_product(session=db, product_create=product_in)
+    assert product.is_discontinued is False
+    actual_products = db.exec(select(func.count()).select_from(Product)).one()
+
+    deleted_product = delete_product(session=db, db_product=product)
+    assert deleted_product.is_discontinued is True
+    assert deleted_product.id == product.id
+    assert db.exec(select(func.count()).select_from(
+        Product)).one() == actual_products
+
+
+def test_delete_already_discontinued_product(db: Session) -> None:
+    name = "Already Discontinued Product"
+    description = "This product is already discontinued"
+    price = 109.99
+    brand = "BrandK"
+    sku = "SKU77777"
+
+    product_in = ProductCreate(
+        name=name,
+        description=description,
+        price=price,
+        brand=brand,
+        sku=sku
+    )
+
+    product = create_product(session=db, product_create=product_in)
+    product.is_discontinued = True
+    delete_product(session=db, db_product=product)
+    assert product.is_discontinued is True
+    actual_products = db.exec(select(func.count()).select_from(Product)).one()
+
+    deleted_product = delete_product(session=db, db_product=product)
+    assert deleted_product.is_discontinued is True
+    assert deleted_product.id == product.id
+    assert db.exec(select(func.count()).select_from(
+        Product)).one() == actual_products
