@@ -1,4 +1,4 @@
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from app.models.product_models import ProductCreate, Product
 
@@ -36,3 +36,9 @@ def delete_product(*, session: Session, db_product: Product) -> None:
     session.commit()
     session.refresh(db_product)
     return db_product
+
+
+def get_product_by_sku(*, session: Session, sku: str) -> Product | None:
+    statement = select(Product).where(Product.sku == sku)
+    session_product = session.exec(statement).first()
+    return session_product

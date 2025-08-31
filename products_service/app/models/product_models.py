@@ -15,6 +15,14 @@ class ProductCreate(ProductBase):
     pass
 
 
+class ProductUpdate(ProductBase):
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    sku: str | None = Field(default=None, min_length=1, max_length=100)
+    price: float | None = Field(default=None, gt=0)
+    brand: str | None = Field(default=None, min_length=1, max_length=100)
+    is_discontinued: bool | None = Field(default=None)
+
+
 class ProductPublic(ProductBase):
     id: uuid.UUID
 
