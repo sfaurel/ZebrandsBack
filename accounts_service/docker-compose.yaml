@@ -1,7 +1,7 @@
 services:
   api:
     build: .
-    container_name: zebrands-account-service
+    container_name: zebrands-accounts-service
     ports:
       - "8000:8000"
     env_file:
