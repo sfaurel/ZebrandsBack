@@ -42,3 +42,14 @@ def get_product_by_sku(*, session: Session, sku: str) -> Product | None:
     statement = select(Product).where(Product.sku == sku)
     session_product = session.exec(statement).first()
     return session_product
+
+
+def get_products(*, session: Session) -> list[Product]:
+    statement = select(Product).where(Product.is_discontinued == False)
+    products = session.exec(statement).all()
+    return products
+
+
+def get_product_by_id(*, session: Session, product_id: str) -> Product | None:
+    product = session.get(Product, product_id)
+    return product

@@ -27,5 +27,10 @@ class ProductPublic(ProductBase):
     id: uuid.UUID
 
 
+class ProductsPublic(SQLModel):
+    data: list[ProductPublic]
+    count: int
+
+
 class Product(ProductBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)

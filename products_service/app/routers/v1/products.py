@@ -11,7 +11,8 @@ from app.models.product_models import (
     Product,
     ProductCreate,
     ProductPublic,
-    ProductUpdate
+    ProductUpdate,
+    ProductsPublic
 )
 from app.schemas.schemas import Message
 
@@ -104,3 +105,34 @@ def delete_product(
 
     product_service.delete_product(session=session, db_product=product)
     return Message(message="Product deleted successfully")
+
+
+@router.get(
+    "",
+    response_model=ProductsPublic
+)
+def list_products(*, session: SessionDep) -> Any:
+    """
+    Retrieve products.
+    """
+
+    products = product_service.get_products(session=session)
+    return ProductsPublic(data=products, count=len(products))
+
+
+@router.get(
+    "/{product_id}",
+    response_model=ProductPublic
+)
+def get_product(*, session: SessionDep, product_id: uuid.UUID) -> Any:
+    """
+    Get product by ID.
+    """
+
+    product = product_service.get_product_by_id(
+        session=session,
+        product_id=product_id
+    )
+    if not product or product.is_discontinued:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product
