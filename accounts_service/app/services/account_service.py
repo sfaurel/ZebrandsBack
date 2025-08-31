@@ -47,7 +47,7 @@ def update_account(
     return db_account
 
 
-def delete_account(*, session: Session, db_account: Account) -> None:
+def delete_account(*, session: Session, db_account: Account) -> Account:
     db_account.sqlmodel_update({"is_active": False})
     session.add(db_account)
     session.commit()
