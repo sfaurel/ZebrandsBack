@@ -30,7 +30,7 @@ def update_product(
     return db_product
 
 
-def delete_product(*, session: Session, db_product: Product) -> None:
+def delete_product(*, session: Session, db_product: Product) -> Product:
     db_product.sqlmodel_update({"is_discontinued": True})
     session.add(db_product)
     session.commit()

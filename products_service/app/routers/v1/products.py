@@ -13,6 +13,8 @@ from app.models.product_models import (
     ProductPublic,
     ProductUpdate
 )
+from app.schemas.schemas import Message
+
 
 router = APIRouter(prefix="/products", tags=["products"])
 
@@ -82,3 +84,23 @@ def update_product(
         product_in=product_in
     )
     return db_product
+
+
+@router.delete(
+    "/{product_id}",
+    dependencies=[Depends(admin_required)],
+    response_model=Message
+)
+def delete_product(
+    session: SessionDep, product_id: uuid.UUID
+) -> Message:
+    """
+    Delete a product.
+    """
+
+    product = session.get(Product, product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    product_service.delete_product(session=session, db_product=product)
+    return Message(message="Product deleted successfully")
