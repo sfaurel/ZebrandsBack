@@ -53,3 +53,23 @@ def delete_account(*, session: Session, db_account: Account) -> Account:
     session.commit()
     session.refresh(db_account)
     return db_account
+
+
+def get_accounts(*, session: Session, role: str | None) -> list[Account]:
+    print("Role filter:", role)
+    if role and role != "all":
+        statement = select(Account).where(
+            (Account.role == role) & (Account.is_active == True)
+        )
+        accounts = session.exec(statement).all()
+        print(f"Filtered accounts: {accounts}")
+        return accounts
+    statement = select(Account).where(Account.is_active == True)
+    accounts = session.exec(statement).all()
+    print(f"All active accounts: {accounts}")
+    return accounts
+
+
+def get_account_by_id(*, session: Session, account_id: str) -> Account | None:
+    account = session.get(Account, account_id)
+    return account

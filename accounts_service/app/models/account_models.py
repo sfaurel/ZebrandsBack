@@ -28,6 +28,11 @@ class AccountPublic(AccountBase):
     id: uuid.UUID
 
 
+class AccountsPublic(SQLModel):
+    data: list[AccountPublic]
+    count: int
+
+
 class Account(AccountBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str = Field(nullable=False)
