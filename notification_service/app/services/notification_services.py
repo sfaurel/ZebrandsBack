@@ -58,7 +58,6 @@ def send_mail(event: AuditEvent) -> Dict:
         timestamp=event.timestamp
     )
     admin_emails = get_admin_emails()
-    print(f"Sending email to: {admin_emails}")
     params: resend.Emails.SendParams = {
         "from": "onboarding@resend.dev",
         "to": admin_emails,
