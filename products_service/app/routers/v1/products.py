@@ -1,11 +1,13 @@
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
+from datetime import datetime, timezone
 import uuid
 
 from app.services import product_service
 from app.dependencies.dependencies import (
     SessionDep,
-    admin_required
+    admin_required,
+    get_current_token_data
 )
 from app.models.product_models import (
     Product,
@@ -14,7 +16,8 @@ from app.models.product_models import (
     ProductUpdate,
     ProductsPublic
 )
-from app.schemas.schemas import Message
+from app.schemas.schemas import Message, AuditEvent
+from app.services.event_publisher_service import emit_crud_event
 
 
 router = APIRouter(prefix="/products", tags=["products"])
@@ -25,7 +28,12 @@ router = APIRouter(prefix="/products", tags=["products"])
     dependencies=[Depends(admin_required)],
     response_model=ProductPublic
 )
-def create_product(*, session: SessionDep, product_in: ProductCreate) -> Any:
+def create_product(
+    *,
+    session: SessionDep,
+    product_in: ProductCreate,
+    token_data: dict = Depends(get_current_token_data)
+) -> ProductPublic:
     """
     Create new product.
     """
@@ -44,6 +52,15 @@ def create_product(*, session: SessionDep, product_in: ProductCreate) -> Any:
         session=session,
         product_create=product_in
     )
+    event = AuditEvent(
+        user=token_data.get("sub"),
+        action="create",
+        timestamp=datetime.now(timezone.utc),
+        model="Product",
+        record_id=product.id,
+        changes=get_changes(original=None, updated=product)
+    )
+    emit_crud_event(event)
     return product
 
 
@@ -57,12 +74,14 @@ def update_product(
     session: SessionDep,
     product_id: uuid.UUID,
     product_in: ProductUpdate,
+    token_data: dict = Depends(get_current_token_data)
 ) -> Any:
     """
     Update existing product.
     """
 
     db_product = session.get(Product, product_id)
+    original_db_product = db_product.model_copy()
     if not db_product:
         raise HTTPException(
             status_code=404,
@@ -79,11 +98,21 @@ def update_product(
                 detail="Product with this sku already exists"
             )
 
+    original_db_product = db_product.model_copy()
     db_product = product_service.update_product(
         session=session,
         db_product=db_product,
         product_in=product_in
     )
+    event = AuditEvent(
+        user=token_data.get("sub"),
+        action="update",
+        timestamp=datetime.now(timezone.utc),
+        model="Product",
+        record_id=db_product.id,
+        changes=get_changes(original=original_db_product, updated=db_product)
+    )
+    emit_crud_event(event)
     return db_product
 
 
@@ -93,18 +122,32 @@ def update_product(
     response_model=Message
 )
 def delete_product(
-    session: SessionDep, product_id: uuid.UUID
+    session: SessionDep,
+    product_id: uuid.UUID,
+    token_data: dict = Depends(get_current_token_data)
 ) -> Message:
     """
     Delete a product.
     """
 
-    product = session.get(Product, product_id)
-    if not product:
+    db_product = session.get(Product, product_id)
+    if not db_product:
         raise HTTPException(status_code=404, detail="Product not found")
 
-    product_service.delete_product(session=session, db_product=product)
-    return Message(message="Product deleted successfully")
+    original_db_product = db_product.model_copy()
+    db_product = product_service.delete_product(
+        session=session, db_product=db_product)
+
+    event = AuditEvent(
+        user=token_data.get("sub"),
+        action="soft delete",
+        timestamp=datetime.now(timezone.utc),
+        model="Product",
+        record_id=db_product.id,
+        changes=get_changes(original=original_db_product, updated=db_product)
+    )
+    emit_crud_event(event)
+    return Message(message="Product soft deleted successfully")
 
 
 @router.get(
@@ -136,3 +179,11 @@ def get_product(*, session: SessionDep, product_id: uuid.UUID) -> Any:
     if not product or product.is_discontinued:
         raise HTTPException(status_code=404, detail="Product not found")
     return product
+
+
+def get_changes(*, original: Product | None, updated: Product) -> dict:
+    changes = {}
+    for field, updated_value in updated.model_dump().items():
+        original_value = getattr(original, field) if original else None
+        changes[field] = {"old": original_value, "new": updated_value}
+    return changes
