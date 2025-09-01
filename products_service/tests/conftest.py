@@ -39,7 +39,7 @@ def client(db: Session) -> Generator[TestClient, None, None]:
 @pytest.fixture()
 def admin_account_token_headers() -> dict[str, str]:
     access_token = create_access_token(
-        subject="normal_account@example.com",
+        subject="admin_account@example.com",
         extra_claims={"role": "admin"}
     )
     headers = {"Authorization": f"Bearer {access_token}"}

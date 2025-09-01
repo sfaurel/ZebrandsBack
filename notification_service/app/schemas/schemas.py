@@ -1,10 +1,6 @@
-from pydantic import BaseModel
-from datetime import datetime
 from typing import Any
-
-
-class Message(BaseModel):
-    message: str
+from datetime import datetime
+from pydantic import BaseModel
 
 
 class AuditEvent(BaseModel):
