@@ -18,7 +18,10 @@ from app.models.product_models import (
 )
 from app.schemas.schemas import Message, AuditEvent
 from app.services.event_publisher_service import emit_crud_event
-
+from app.services.product_analytics_service import (
+    init_product_analytics,
+    increment_anonymous_query_count
+)
 
 router = APIRouter(prefix="/products", tags=["products"])
 
@@ -61,6 +64,7 @@ def create_product(
         changes=get_changes(original=None, updated=product)
     )
     emit_crud_event(event)
+    init_product_analytics(session=session, product_id=product.id)
     return product
 
 
@@ -81,7 +85,6 @@ def update_product(
     """
 
     db_product = session.get(Product, product_id)
-    original_db_product = db_product.model_copy()
     if not db_product:
         raise HTTPException(
             status_code=404,
@@ -167,7 +170,11 @@ def list_products(*, session: SessionDep) -> Any:
     "/{product_id}",
     response_model=ProductPublic
 )
-def get_product(*, session: SessionDep, product_id: uuid.UUID) -> Any:
+def get_product(
+    *,
+    session: SessionDep,
+    product_id: uuid.UUID,
+) -> Any:
     """
     Get product by ID.
     """
@@ -176,8 +183,9 @@ def get_product(*, session: SessionDep, product_id: uuid.UUID) -> Any:
         session=session,
         product_id=product_id
     )
-    if not product or product.is_discontinued:
+    if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+    increment_anonymous_query_count(session=session, product_id=product.id)
     return product
 
 
