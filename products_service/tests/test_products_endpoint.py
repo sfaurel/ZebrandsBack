@@ -197,7 +197,7 @@ def test_delete_product_success(
     )
     response_json = response.json()
     assert response.status_code == 200
-    assert response_json["message"] == "Product deleted successfully"
+    assert response_json["message"] == "Product soft deleted successfully"
     result = db.exec(select(Product).where(Product.id == product_id)).first()
     assert result.is_discontinued is True
 

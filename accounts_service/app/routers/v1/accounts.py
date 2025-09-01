@@ -147,6 +147,9 @@ def get_account_by_id(
         session=session,
         account_id=account_id
     )
-    if not account:
-        raise HTTPException(status_code=404, detail="Account not found")
+    if not account or account.is_disabled:
+        raise HTTPException(
+            status_code=404,
+            detail="Account not found or is disabled"
+        )
     return account

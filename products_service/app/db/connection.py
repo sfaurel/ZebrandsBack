@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 
 from app.models.product_models import Product
+from app.models.product_analytics_models import ProductAnalytics
 
 load_dotenv()
 
